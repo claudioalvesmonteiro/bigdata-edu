@@ -119,3 +119,4 @@ brdf = spark.read.csv('dados/BR_muni_code.csv', header=True, inferSchema=True)
 brdf.printSchema()
 
 # join
+city = cit.join(brdf, ['code_muni2'])
