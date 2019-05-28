@@ -65,7 +65,7 @@ df.printSchema()
 #==============================#
 
 #--------- SAMPLE
-sdf = spark.createDataFrame(df.rdd.takeSample(False, 100000, seed=0))
+sdf = spark.createDataFrame(df.rdd.takeSample(False, 500000, seed=0))
 
 #--------- SELECT
 sdf.select('TP_COR_RACA', 'TP_SEXO').show(10)
@@ -101,7 +101,21 @@ gsdf.agg({'*': 'count', 'NU_DURACAO_TURMA': 'avg', 'TP_SEXO': 'sum'})
     .show()
 )
 
-#------- SORT ROWS
-sdf.sort('NU_DURACAO_TURMA', ascending = False).show(10)
+# save renamed agreg
+cit = (
+    sdf.groupby('CO_MUNICIPIO_END').agg({'*': 'count', 'NU_DURACAO_TURMA': 'avg'})
+        .toDF('code_muni2', 'count_alunos', 'avg_duracao_turma')
+)
 
-#------ JOIN 
+cit.show(20)
+
+#------- SORT ROWS
+cit.sort('NU_DURACAO_TURMA', ascending = False).show(10)
+
+#------ JOIN [merge]
+
+# read file for merge
+brdf = spark.read.csv('dados/BR_muni_code.csv', header=True, inferSchema=True)
+brdf.printSchema()
+
+# join
