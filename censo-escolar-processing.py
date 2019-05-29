@@ -56,7 +56,7 @@ for file in fl:
 
 tt = time() - t0
 
-print('Task performed in {} minutes'.format(tt/60))
+print('Task 1 performed in {} minutes'.format(tt/60))
 
 df.printSchema()
 
@@ -64,8 +64,13 @@ df.printSchema()
 # DATA STRUCTURE OPERATIONS
 #==============================#
 
+
 #--------- SAMPLE
+t0 = time() 
 sdf = spark.createDataFrame(df.rdd.takeSample(False, 500000, seed=0))
+tt = time() - t0
+
+print('Task 2 performed in {} minutes'.format(tt/60))
 
 #--------- SELECT
 sdf.select('TP_COR_RACA', 'TP_SEXO').show(10)
