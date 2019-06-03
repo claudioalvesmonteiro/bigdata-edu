@@ -33,18 +33,18 @@ exec(open('/home/pacha/spark/python/pyspark/shell.py').read())
 #========================#
 
 # return list of files in directory
-fl = os.listdir()
+fl = os.listdir('data/censo-escolar/2017')
 fl
 
 # list of columns to be selected
-cols = ['NU_DURACAO_TURMA', 'TP_SEXO', 'TP_COR_RACA', 'CO_MUNICIPIO_END', 'TP_DEPENDENCIA']
+cols = ['NU_DURACAO_TURMA','NU_ANO_CENSO','ID_MATRICULA','CO_PESSOA_FISICA','CO_MUNICIPIO','ID_TURMA','TP_LOCALIZACAO', 'TP_SEXO', 'TP_COR_RACA', 'CO_MUNICIPIO_END', 'TP_DEPENDENCIA']
 
 t0 = time() # time of import
 
 # import files, select and combine data
 key = True
 for file in fl:
-    if file.endswith(".CSV"):
+    if 'MATRICULA' in file:
         if key == True:
             df = spark.read.csv(file, header=True, inferSchema=True, sep='|')
             df = df.select(cols)
@@ -64,11 +64,20 @@ df.printSchema()
 # DATA STRUCTURE OPERATIONS
 #==============================#
 
+'''test'''
+df = spark.read.csv('data/censo-escolar/2017/MATRICULA_SUL.CSV', header=True, inferSchema=True, sep='|')
+df = df.select(cols)
+df.show(20)
+df.printSchema()
+
 
 #--------- SAMPLE
 t0 = time() 
 sdf = spark.createDataFrame(df.rdd.takeSample(False, 500000, seed=0))
 tt = time() - t0
+
+df.select('ID_MATRICULA').show(300000)
+
 
 print('Task 2 performed in {} minutes'.format(tt/60))
 

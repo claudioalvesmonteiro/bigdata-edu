@@ -33,29 +33,27 @@ exec(open('/home/pacha/spark/python/pyspark/shell.py').read())
 #========================#
 
 # return list of files in directory
-fl = os.listdir()
+next(os.walk('.'))[1]
+
+fl = os.listdir('data/saeb/2017')
 fl
 
 # list of columns to be selected
-cols = ['NU_DURACAO_TURMA', 'TP_SEXO', 'TP_COR_RACA', 'CO_MUNICIPIO_END', 'TP_DEPENDENCIA']
+cols2 = ['ID_ALUNO','IN_SITUACAO_CENSO', 'ID_ESCOLA', 'ID_TURMA', 'ID_LOCALIZACAO', 'ID_SERIE']
 
-t0 = time() # time of import
-
-# import files, select and combine data
-key = True
-for file in fl:
-    if file.endswith(".CSV"):
-        if key == True:
-            df = spark.read.csv(file, header=True, inferSchema=True, sep='|')
-            df = df.select(cols)
-            key = False
-        else:
-            x = spark.read.csv(file, header=True, inferSchema=True, sep='|')
-            x = x.select(cols)
-            df = df.union(x)
-
+# import data
+t0 = time() 
+df2 = spark.read.csv('data/saeb/2017/TS_ALUNO_5EF.csv', header=True, inferSchema=True, sep=',')
 tt = time() - t0
 
 print('Task 1 performed in {} minutes'.format(tt/60))
 
+# print schema
 df.printSchema()
+
+# codes identifiers
+saeb_ident = df2.select(cols2)
+saeb_ident.select('ID_ALUNO').show(300000)
+saeb_ident.printSchema()
+
+city = cit.join(brdf, ['code_muni2'])
