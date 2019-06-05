@@ -24,6 +24,10 @@ Hierarquical Modelling
 # import modules
 import os
 from time import time
+import pandas as pd
+import numpy as np
+import plotly.offline as py
+import cufflinks as cf
 
 # paths to spark and python3
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--executor-memory 1G pyspark-shell'
@@ -88,9 +92,34 @@ def csvCombiner(strdata, filename, sep, cols):
 censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
 
 #---- combinar dados TURMA
-alunoSAEB = csvCombiner('censo-escolar', 'TURMA', '|')
+#alunoSAEB = csvCombiner('censo-escolar', 'TURMA', '|', col_turma)
 
 #---- combinar dados SAEB
+
+#===========================#
+# Exploratory Analysis
+#==========================#
+
+# Group by city
+colsel = ['IN_AGUA_FILTRADA','IN_AGUA_INEXISTENTE',
+        #'IN_ENERGIA_INEXISTENTE','IN_ESGOTO_INEXISTENTE',
+       # 'IN_LABORATORIO_CIENCIAS','IN_LABORATORIO_INFORMATICA',
+        'IN_QUADRA_ESPORTES','IN_BIBLIOTECA_SALA_LEITURA',
+       # 'IN_BANHEIRO_DENTRO_PREDIO','IN_BANHEIRO_CHUVEIRO',
+        'IN_INTERNET', 'CO_MUNICIPIO']
+
+
+munidata = censo_esc.select(colsel).groupby('CO_MUNICIPIO').sum()
+munidata.show(10)
+
+# renomear colunas
+newColumns = ['code_muni'] + [x.lower() for x in colsel]
+
+muni = munidata.toDF(*newColumns)
+muni.show(10)
+
+# select data from city
+#city = censo_esc.filter(censo_esc.CO_MUNICIPIO == 3158953)
 
 
 '''
