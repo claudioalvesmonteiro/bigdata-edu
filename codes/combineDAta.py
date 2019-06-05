@@ -48,11 +48,10 @@ df2 = df2.select('ID_ALUNO','IN_SITUACAO_CENSO', 'ID_ESCOLA', 'ID_TURMA', 'ID_LO
 # IMPORT AND CONCAT DATA
 #========================
 
-strdata = 'censo-escolar'
-filename = 'TURMA'
-#cols = 
-
 def csvCombiner(strdata, filename, sep):
+    ''' Concatenate each dataset  with the same name
+        located in folders and subfolders
+    '''
     camino = 'data/' + strdata  + '/'
     paths = next(os.walk(camino))[1]
     key = True
