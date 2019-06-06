@@ -38,16 +38,6 @@ os.environ["PYSPARK_PYTHON"]="/usr/bin/python3"
 exec(open('/home/pacha/spark/python/pyspark/shell.py').read())
 # UI: 127.0.0.1:4040
 
-'''
-# import and select data
-df = spark.read.csv('data/censo-escolar/2017/MATRICULA_SUL.CSV', header=True, inferSchema=True, sep='|')
-df = df.select('NU_DURACAO_TURMA','NU_ANO_CENSO','ID_MATRICULA','CO_PESSOA_FISICA','CO_MUNICIPIO','ID_TURMA','TP_LOCALIZACAO', 'TP_SEXO', 'TP_COR_RACA', 'CO_MUNICIPIO_END', 'TP_DEPENDENCIA')
-
-df2 = spark.read.csv('data/saeb/2017/TS_ALUNO_5EF.csv', header=True, inferSchema=True, sep=',')
-df2.printSchema()
-df2 = df2.select('ID_ALUNO','IN_SITUACAO_CENSO', 'ID_ESCOLA', 'ID_TURMA', 'ID_LOCALIZACAO', 'ID_SERIE')
-'''
-
 #==========================
 # IMPORT AND CONCAT DATA
 #========================
@@ -64,6 +54,8 @@ col_escola = ['CO_ENTIDADE','NO_ENTIDADE','DT_ANO_LETIVO_INICIO','CO_MUNICIPIO',
               # 
             ]
 
+col_nota = 'ID_MUNICIPIO ID_AREA ID_ESCOLA ID_DEPENDENCIA_ADM ID_LOCALIZACAO ID_TURMA ID_TURNO ID_SERIE ID_ALUNO PROFICIENCIA_LP PROFICIENCIA_LP_SAEB PROFICIENCIA_MT PROFICIENCIA_MT_SAEB'.split(' ')
+
 ## function
 def csvCombiner(strdata, filename, sep, cols):
     ''' Concatenate each dataset  with the same name
@@ -73,7 +65,7 @@ def csvCombiner(strdata, filename, sep, cols):
     paths = next(os.walk(camino))[1]
     key = True
     for i in paths:
-        if i == '2018' or i == '2017' or i == '2015': # AJEITAR MATCH DE COLUNAS
+        if i == '2018' or i == '2017' or i == '2016' or i == '2015': # AJEITAR MATCH DE COLUNAS
             listin = os.listdir((camino + i))
             for file in listin:
                 if filename in file:
@@ -89,7 +81,7 @@ def csvCombiner(strdata, filename, sep, cols):
     return df
 
 #---- combinar dados ESCOLA
-censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
+#censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
 
 #---- combinar dados TURMA
 #alunoSAEB = csvCombiner('censo-escolar', 'TURMA', '|', col_turma)
@@ -100,26 +92,74 @@ censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
 # Exploratory Analysis
 #==========================#
 
+#============ CENSO-ESCOLAR ESCOLA ===========#
+
+# load 2017 data for testing
+censo_esc = spark.read.csv('data/censo-escolar/2017/ESCOLAS.CSV', header=True, inferSchema=True, sep='|')
+censo_esc = censo_esc.select(col_escola)
+
 # Group by city
 colsel = ['IN_AGUA_FILTRADA','IN_AGUA_INEXISTENTE',
-        #'IN_ENERGIA_INEXISTENTE','IN_ESGOTO_INEXISTENTE',
-       # 'IN_LABORATORIO_CIENCIAS','IN_LABORATORIO_INFORMATICA',
+         'IN_ENERGIA_INEXISTENTE','IN_ESGOTO_INEXISTENTE',
+        'IN_LABORATORIO_CIENCIAS','IN_LABORATORIO_INFORMATICA',
         'IN_QUADRA_ESPORTES','IN_BIBLIOTECA_SALA_LEITURA',
-       # 'IN_BANHEIRO_DENTRO_PREDIO','IN_BANHEIRO_CHUVEIRO',
+        'IN_BANHEIRO_DENTRO_PREDIO','IN_BANHEIRO_CHUVEIRO',
         'IN_INTERNET', 'CO_MUNICIPIO']
 
-
-munidata = censo_esc.select(colsel).groupby('CO_MUNICIPIO').sum()
-munidata.show(10)
+muni = censo_esc.select(colsel).groupby('CO_MUNICIPIO').sum()
+muni.show(10)
 
 # renomear colunas
 newColumns = ['code_muni'] + [x.lower() for x in colsel]
-
-muni = munidata.toDF(*newColumns)
+muni = muni.toDF(*newColumns)
 muni.show(10)
+
+# select info columns
+muni = censo_esc.select(colsel).groupby('CO_MUNICIPIO').sum()
+
+# convert data and save locally FALTA NOMES DOS COLUNAS, ANO E ETC.
+muni.toPandas().to_csv('muni.csv')
 
 # select data from city
 #city = censo_esc.filter(censo_esc.CO_MUNICIPIO == 3158953)
+
+#================ INEP NOTAS ===============#
+
+notas = spark.read.csv('data/saeb/2017/TS_ALUNO_3EM_AG.csv', header=True, inferSchema=True, sep=',')
+notas = notas.select(col_nota)
+
+notas.printSchema()
+censo_esc.printSchema()
+
+#============== Combine data ===============#
+
+# contar numero de casos por base
+print((censo_esc.count(), len(censo_esc.columns)))
+print((notas.count(), len(notas.columns)))
+
+# visualizar code infos
+notas.select('ID_ESCOLA').show(100)
+censo_esc.select('CO_ENTIDADE').show(100)
+
+# renomear coluna
+censo_esc = censo_esc.withColumnRenamed('CO_ENTIDADE', 'ID_ESCOLA')
+
+# join data
+mfDF = censo_esc.join(notas, ['ID_ESCOLA'])
+
+# selec recife and save
+recmf = mfDF.filter(mfDF.CO_MUNICIPIO == 2611606)
+
+recdf = recmf.toPandas()
+recdf.to_csv('rec_big.csv', index = False)
+
+
+
+
+
+
+
+
 
 
 '''
