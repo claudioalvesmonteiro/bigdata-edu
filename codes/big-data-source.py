@@ -6,7 +6,6 @@ Big Data Studies
    /__ / .__/\_,_/_/ /_/\_\   version 2.4.3
       /_/
 
-
 @claudio alves monteiro
 maio/2019
 '''
