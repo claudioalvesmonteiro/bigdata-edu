@@ -133,3 +133,15 @@ brdf.printSchema()
 
 # join
 city = cit.join(brdf, ['code_muni2'])
+
+#----------- APPLY FUNCTION TO EVERY ROW IN COLUMN DF
+from pyspark.sql.functions import udf
+import pyspark.sql.types as ST
+
+@udf(ST.StringType())
+def add_nome(var):
+    try:
+        if var is not None:
+            return 'NOME EMPRESA ->' + str(var)
+    except:
+        return None

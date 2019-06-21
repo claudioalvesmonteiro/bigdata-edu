@@ -81,10 +81,10 @@ def csvCombiner(strdata, filename, sep, cols):
     return df
 
 #---- combinar dados ESCOLA
-#censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
+censo_esc = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola)
 
 #---- combinar dados TURMA
-#alunoSAEB = csvCombiner('censo-escolar', 'TURMA', '|', col_turma)
+alunoSAEB = csvCombiner('censo-escolar', 'TURMA', '|', col_turma)
 
 #---- combinar dados SAEB
 
