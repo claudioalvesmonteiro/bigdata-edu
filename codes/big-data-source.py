@@ -44,6 +44,7 @@ t0 = time() # time of import
 key = True
 for file in fl:
     if 'MATRICULA' in file:
+        file = 'data/censo-escolar/2017/' + file
         if key == True:
             df = spark.read.csv(file, header=True, inferSchema=True, sep='|')
             df = df.select(cols)
@@ -68,7 +69,6 @@ df = spark.read.csv('data/censo-escolar/2017/MATRICULA_SUL.CSV', header=True, in
 df = df.select(cols)
 df.show(20)
 df.printSchema()
-
 
 #--------- SAMPLE
 t0 = time() 
