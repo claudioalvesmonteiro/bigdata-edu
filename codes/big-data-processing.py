@@ -52,7 +52,7 @@ col_nota = 'ID_MUNICIPIO ID_AREA ID_ESCOLA ID_DEPENDENCIA_ADM ID_LOCALIZACAO ID_
 
 
 ##------------------ function for loading
-def csvCombiner(strdata, filename, sep, cols, anoinit, anoend):
+def csvCombiner(strdata, filename, sep, cols, lista_ano):
     ''' Concatenate each dataset  with the same name
         located in folders and subfolders
     '''
@@ -62,7 +62,7 @@ def csvCombiner(strdata, filename, sep, cols, anoinit, anoend):
     camino = 'data/' + strdata  + '/'
     paths = next(os.walk(camino))[1]
     key = True
-    anos = [str(x) for x in range(anoinit, anoend+1)]
+    anos = [str(x) for x in lista_ano]
     # verify data
     if strdata == 'censo-escolar':
         column = 'CO_MUNICIPIO'
@@ -94,7 +94,7 @@ def csvCombiner(strdata, filename, sep, cols, anoinit, anoend):
 
 # generate data
 start_time = time.time()
-censo_esc_rec = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola, 2015, 2018)
+censo_esc_rec = csvCombiner('censo-escolar', 'ESCOLA', '|', col_escola, [2014, 2015,2016,2017,2018])
 print("--- %s seconds ---" % (time.time() - start_time))
 
 # save data
@@ -110,13 +110,27 @@ censo_turma = csvCombiner('censo-escolar', 'TURMA', '|', col_turma, 2015, 2018)
 
 # generate data and verify time of execution
 start_time = time.time()
-aneb_rec = csvCombiner('saeb', 'TS_ALUNO', ',', col_nota, 2013, 2017)
+lista_ano = [2017, 2015, 2013, 2011]
+aneb_rec = csvCombiner('saeb', 'TS_ALUNO', ',', col_nota, lista_ano)
 print("--- %s seconds ---" % (time.time() - start_time))
 
 # save data
 pd2 = aneb_rec.toPandas()
 pd2.to_csv('results/data/aneb_rec.csv')
 
+def countGenTab(df, column):
+    # groupby, count and sort pyspark
+    tab = df.select(column).groupby(column).count().alias('count').sort('count', ascending=False)
+    # transform to pandas df
+    tab = tab.toPandas()
+    # calculate proportion
+    tab['prop'] = round(tab['count']/sum(tab['count'])*100, 2)
+    # return
+    return tab
+
+#------ ANEB
+
+countGenTab(aneb_rec, 'ID_SERIE')
 
 #============== COMBINE DATA ===============#
 
@@ -139,12 +153,6 @@ recmf = mfDF.filter(mfDF.CO_MUNICIPIO == 2611606)
 
 recdf = recmf.toPandas()
 recdf.to_csv('rec_big.csv', index = False)
-
-
-
-
-
-
 
 
 

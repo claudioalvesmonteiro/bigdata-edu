@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 sns.set_style('whitegrid')
 
 # import data
-df = pd.read_csv('rec_data.csv')
+df = pd.read_csv('results/data/censo_esc_rec.csv')
 
 #==================================
 # Pre-processing
