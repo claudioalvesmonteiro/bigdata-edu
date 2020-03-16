@@ -13,7 +13,7 @@ import pandas as pd
 # import functions
 import pyspark.sql.functions as SF
 
-bases = ['2015', '2014']
+bases = ['2018', '2017', '2016','2015']
 
 #def fileGenerator():
 for base in bases:
@@ -34,6 +34,7 @@ for base in bases:
                 'NU_NOTA_CH' ,
                 'NU_NOTA_LC', 
                 'NU_NOTA_MT',
+                'NU_NOTA_REDACAO',
                 'TX_RESPOSTAS_CN',  
                 'TX_RESPOSTAS_CH', 
                 'TX_RESPOSTAS_LC', 
